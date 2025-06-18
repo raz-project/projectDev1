@@ -56,7 +56,15 @@ jobs:
         with:
           version: "latest"
 
-      - name: Apply Kubernetes complex-hpa.yaml
+      - name: Configure KUBECONFIG for K3s
+        run: |
+          mkdir -p ~/.kube
+          sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+          sudo chown $USER:$USER ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          kubectl config get-contexts
+
+      - name: Apply complex-hpa.yaml to K3s
         run: kubectl apply -f complex-hpa.yaml
 
       - name: Wait for pods to be ready
@@ -64,13 +72,19 @@ jobs:
           echo "Waiting for pods to become ready..."
           kubectl wait --for=condition=ready pod -l app=project-node-app --timeout=120s
 
-      - name: Test Node.js service in Kubernetes
+      - name: Test Node.js app by curling index.html
         run: |
           NODE_PORT=$(kubectl get svc project-node-app-service -o jsonpath="{.spec.ports[0].nodePort}")
           NODE_IP=$(kubectl get nodes -o jsonpath="{.items[0].status.addresses[0].address}")
           echo "Testing http://$NODE_IP:$NODE_PORT"
           for i in {1..10}; do
-            curl -s http://$NODE_IP:$NODE_PORT | grep "<html" && break || sleep 5
+            if curl -s http://$NODE_IP:$NODE_PORT | grep "<html"; then
+              echo "Index.html served correctly"
+              break
+            else
+              echo "Waiting for app to respond..."
+              sleep 5
+            fi
           done
 
       - name: Show pod status
