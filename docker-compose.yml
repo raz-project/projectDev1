@@ -5,11 +5,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ${{ secrets.DOCKER_USERNAME }}/nodejs-app:1.0
+    image: rsrs88/nodejs-app:1.0
     ports:
       - "8080:80"
     volumes:
-      - ./web/index.html:/app/web/index.html # Mounts index.html outside web into web inside container
+      - ./web/index.html:/app/web/index.html
     deploy:
       replicas: 1
       resources:
