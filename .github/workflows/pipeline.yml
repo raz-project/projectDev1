@@ -33,9 +33,9 @@ jobs:
 
       - name: Run Docker Compose services
         run: |
-          docker-compose up -d --build
+          docker compose up -d --build
           sleep 10
-          docker-compose ps
+          docker compose ps
 
       - name: Test served HTML page
         run: |
@@ -48,5 +48,5 @@ jobs:
 
       - name: Stop and remove Docker Compose containers and volumes
         run: |
-          docker-compose down -v
+          docker compose down -v
           docker volume prune -f
