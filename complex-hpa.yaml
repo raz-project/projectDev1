@@ -8,7 +8,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: project-node-app
-  namespace: project-devOps
+  namespace: project-devops
 spec:
   replicas: 1 # Initial number of pods
   selector:
@@ -52,7 +52,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: project-node-app-service
-  namespace: project-devOps
+  namespace: project-devops
 spec:
   type: NodePort # Exposes the Service externally.
   selector:
@@ -68,7 +68,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: project-node-app
-  namespace: project-devOps
+  namespace: project-devops
 spec:
   scaleTargetRef: # What to scale
     apiVersion: apps/v1
