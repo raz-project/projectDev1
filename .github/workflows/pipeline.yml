@@ -59,9 +59,8 @@ jobs:
       - name: Configure KUBECONFIG for K3s
         run: |
           mkdir -p ~/.kube
-          sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
-          sudo chown $USER:$USER ~/.kube/config
-          export KUBECONFIG=~/.kube/config
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
           kubectl config get-contexts
 
       - name: Apply complex-hpa.yaml to K3s
