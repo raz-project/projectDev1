@@ -50,3 +50,35 @@ jobs:
         run: |
           docker compose down -v
           docker volume prune -f
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "latest"
+
+      - name: Apply Kubernetes complex-hpa.yaml
+        run: kubectl apply -f complex-hpa.yaml
+
+      - name: Wait for pods to be ready
+        run: |
+          echo "Waiting for pods to become ready..."
+          kubectl wait --for=condition=ready pod -l app=project-node-app --timeout=120s
+
+      - name: Test Node.js service in Kubernetes
+        run: |
+          NODE_PORT=$(kubectl get svc project-node-app-service -o jsonpath="{.spec.ports[0].nodePort}")
+          NODE_IP=$(kubectl get nodes -o jsonpath="{.items[0].status.addresses[0].address}")
+          echo "Testing http://$NODE_IP:$NODE_PORT"
+          for i in {1..10}; do
+            curl -s http://$NODE_IP:$NODE_PORT | grep "<html" && break || sleep 5
+          done
+
+      - name: Show pod status
+        run: kubectl get pods -o wide
+
+      - name: Cleanup Kubernetes resources
+        run: |
+          kubectl delete -f complex-hpa.yaml
+          kubectl delete svc project-node-app-service || true
+          kubectl delete deployment project-node-app || true
+          kubectl delete hpa project-node-app || true
