@@ -58,8 +58,9 @@ spec:
   selector:
     app: project-node-app # Select pods with this label
   ports:
-    - protocol: TCP
-    - port: 80 # Service port
+    - name: http
+      protocol: TCP
+      port: 80 # Service port
       targetPort: 80 # Container port
       nodePort: 30055
 ---
