@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${{ secrets.DOCKER_USERNAME }}/nodejs-app:1.0
+    ports:
+      - "8080:80"
+    volumes:
+      - ./web/index.html:/app/web/index.html # Mounts index.html outside web into web inside container
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 64M
+      placement:
+        max_replicas_per_node: 10

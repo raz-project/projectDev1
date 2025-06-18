@@ -6,21 +6,47 @@ jobs:
     steps:
       - name: Check Docker version
         run: docker --version
+
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: Log in to DockerHub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
       - name: Build and tag Docker image
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/nodejs-app:1.0 .
+
       - name: Run Docker container
         run: |
           docker run -d -p 8080:80 --name test-app ${{ secrets.DOCKER_USERNAME }}/nodejs-app:1.0 .
           sleep 5
           docker ps -a
+
       - name: Push Docker image to DockerHub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/nodejs-app:1.0
+
       - name: Stop and remove container and volume
         run: |
           docker stop ${{ secrets.DOCKER_USERNAME }}/nodejs-app:1.0 || true
           docker rm ${{ secrets.DOCKER_USERNAME }}/nodejs-app:1.0 || true
+          docker volume prune -f
+
+      - name: Run Docker Compose services
+        run: |
+          docker-compose up -d --build
+          sleep 10
+          docker-compose ps
+
+      - name: Test served HTML page
+        run: |
+          RESPONSE=$(curl -s http://localhost:8080)
+          echo "$RESPONSE"
+          if [[ "$RESPONSE" != *"<html"* ]]; then
+            echo "HTML content not found in response!"
+            exit 1
+          fi
+
+      - name: Stop and remove Docker Compose containers and volumes
+        run: |
+          docker-compose down -v
           docker volume prune -f
