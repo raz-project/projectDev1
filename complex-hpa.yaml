@@ -1,8 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: project-devOps
+---
 # Deployment configuration for our application
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: project-node-app
+  namespace: project-devOps
 spec:
   replicas: 1 # Initial number of pods
   selector:
@@ -46,23 +52,23 @@ apiVersion: v1
 kind: Service
 metadata:
   name: project-node-app-service
+  namespace: project-devOps
 spec:
+  type: NodePort # Exposes the Service externally.
   selector:
     app: project-node-app # Select pods with this label
   ports:
+    - protocol: TCP
     - port: 80 # Service port
       targetPort: 80 # Container port
-      name: http
-    - port: 8000 # Service port for metrics
-      targetPort: 8000 # Container port for metrics
-      name: metrics
-  type: NodePort # Expose service on each node's IP
+      nodePort: 30055
 ---
 # HorizontalPodAutoscaler configuration
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: project-node-app
+  namespace: project-devOps
 spec:
   scaleTargetRef: # What to scale
     apiVersion: apps/v1
