@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: project-devOps
+  name: project-devops
 ---
 # Deployment configuration for our application
 apiVersion: apps/v1
