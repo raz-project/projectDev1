@@ -64,7 +64,7 @@ jobs:
           kubectl config get-contexts
 
       - name: Apply complex-hpa.yaml to K3s
-        run: kubectl apply -f complex-hpa.yaml --validate=false
+        run: kubectl apply -f complex-hpa.yaml
 
       - name: Wait for pods to be ready
         run: |
