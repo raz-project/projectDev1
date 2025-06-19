@@ -2,7 +2,7 @@ name: Project nodejs CI/CD Pipeline
 on: [push]
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Check Docker version
         run: docker --version
