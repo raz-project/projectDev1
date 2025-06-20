@@ -69,11 +69,13 @@ pipeline {
              }
         }
 
-        post {
-          always {
-              bat 'docker-compose down -v || echo "No containers to stop"'
-              bat 'docker volume prune -f'
-               }
+        stage('Docker Compose Down') {
+            steps {
+                bat """
+                    docker compose down -v
+                    docker volume prune -f
+                """
+            }
         }
         
 
