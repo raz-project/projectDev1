@@ -88,5 +88,35 @@ pipeline {
                '''
             }
          }
+
+         stage('Apply HPA Configuration') {
+            steps {
+                sh '''
+                    echo "Applying hpa-complex.yaml..."
+                    kubectl apply -f hpa-complex.yaml
+                '''
+            }
+        }
+
+        stage('Verify Pods') {
+            steps {
+                sh '''
+                    echo "Waiting for pods to be created..."
+                    sleep 10
+                    kubectl get pods
+                '''
+            }
+        }
+
+        stage('Clean Up K3s Resources') {
+            steps {
+                sh '''
+                    echo "Cleaning up Kubernetes resources..."
+                    kubectl delete -f hpa-complex.yaml || true
+                    kubectl delete deployment --all || true
+                    kubectl delete service --all || true
+                '''
+            }
+        }
     }
 }
