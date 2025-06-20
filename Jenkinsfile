@@ -14,41 +14,41 @@ pipeline {
 
         stage('Docker Build and Tag') {
             steps {
-                bat "docker build -t %DOCKERHUB_CREDENTIALS_USR%/nodejs-app:1.0 ."
+                sh "docker build -t ${DOCKERHUB_CREDENTIALS_USR}/nodejs-app:1.0 ."
             }
         }
 
         stage('Docker Push to DockerHub') {
             steps {
-                bat """
-                    echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin
-                    docker push %DOCKERHUB_CREDENTIALS_USR%/nodejs-app:1.0
+                sh """
+                    echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin
+                    docker push ${DOCKERHUB_CREDENTIALS_USR}/nodejs-app:1.0
                 """
             }
         }
 
         stage('Run Docker Container') {
             steps {
-                bat "docker run -d  --name nodejs-container %DOCKERHUB_CREDENTIALS_USR%/nodejs-app:1.0"
+                sh "docker run -d  --name nodejs-container ${DOCKERHUB_CREDENTIALS_USR}/nodejs-app:1.0"
             }
         }
         
         stage('Cleanup') {
             steps {
-                bat """
+                sh """
                     docker stop nodejs-container
                     docker rm nodejs-container
-                    docker rmi %DOCKERHUB_CREDENTIALS_USR%/nodejs-app:1.0
+                    docker rmi ${DOCKERHUB_CREDENTIALS_USR}/nodejs-app:1.0
                 """
             }
         }
 
         stage('Docker Compose Up') {
             steps {
-                bat """
+                sh """
                     docker compose down -v || exit 0
                     docker compose up -d --build
-                    ping -n 10 127.0.0.1 > nul
+                    sleep 10
                     docker compose ps
                 """
             }
@@ -56,7 +56,7 @@ pipeline {
 
         stage('Test HTML Response') {
            steps {
-                bat '''
+                sh '''
                      curl -s http://localhost:8081
                 '''
             }
@@ -64,7 +64,7 @@ pipeline {
 
         stage('Docker Compose Down') {
             steps {
-                bat """
+                sh """
                     docker compose down -v
                     docker volume prune -f
                 """
@@ -73,24 +73,20 @@ pipeline {
 
         stage('Install k3s') {
             steps {
-                // Ensure WSL is available and the user has permission to execute it
-                bat """
+                sh '''
                     echo "Installing k3s..."
-                    wsl curl -sfL https://get.k3s.io | wsl sh -
-                """
+                    curl -sfL https://get.k3s.io | sh -
+                '''
             }
         }
 
         stage('Check k3s Version') {
             steps {
-                // Use WSL to check k3s version on Windows
-                bat """
+                sh '''
                     echo "Checking k3s version..."
-                    wsl k3s --version --short
-                """
+                    k3s --version --short
+                '''
             }
         }
-        
-
     }
 }
