@@ -109,14 +109,19 @@ pipeline {
         }
 
         stage('Test index.html in Pod') {
-            steps {
-                sh '''
-                    echo "Finding the pod name..."
-                    POD_NAME=$(kubectl get pods -l app=nodejs-app -o jsonpath="{.items[0].metadata.name}")
-                    
-                    echo "Executing curl inside the pod..."
-                    kubectl exec $POD_NAME -- curl -s http://localhost:8080/index.html
-                '''
+           steps {
+              sh '''
+                  echo "Finding the pod name..."
+                  POD_NAME=$(kubectl get pods -l app=project-node-app -o jsonpath="{.items[0].metadata.name}")
+
+              if [ -z "$POD_NAME" ]; then
+                  echo "Error: No pods found with label app=project-node-app"
+                  exit 1
+              fi
+
+                 echo "Executing curl inside the pod..."
+                 kubectl exec $POD_NAME -- curl -s http://localhost:8080/index.html
+              '''
             }
         }
 
