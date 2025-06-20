@@ -99,12 +99,12 @@ pipeline {
         }
 
         stage('Verify Pods') {
-            steps {
-                sh '''
-                    echo "Waiting for pods to be created..."
-                    sleep 10
-                    kubectl get pods
-                '''
+           steps {
+              sh '''
+                  echo "Waiting for pods to be created..."
+                  sleep 10
+                  kubectl get pods -n project-devops -o wide
+              '''
             }
         }
 
@@ -117,25 +117,25 @@ pipeline {
                 POD_NAME=$(kubectl get pods -n project-dev -l app=project-node-app -o jsonpath="{.items[0].metadata.name}")
 
                if [ -z "$POD_NAME" ]; then
-                   echo "Error: No pods found with label app=project-node-app in project-dev namespace"
+                   echo "Error: No pods found with label app=project-node-app in project-devops namespace"
                    exit 1
                fi
 
                    echo "Pod found: $POD_NAME"
                    echo "Executing curl inside the pod..."
-                   kubectl exec -n project-dev $POD_NAME -- curl -s http://localhost:8080/index.html
+                   kubectl exec -n project-devops $POD_NAME -- curl -s http://localhost:8080/index.html
                '''
             }
         }
 
 
-        stage('Clean Up K3s Resources') {
+        sstage('Clean Up K3s Resources') {
             steps {
-                sh '''
-                    echo "Cleaning up Kubernetes resources..."
-                    kubectl delete -f complex-hpa.yaml || true
-                    kubectl delete deployment --all || true
-                    kubectl delete service --all || true
+               sh '''
+                   echo "Cleaning up Kubernetes resources in project-devops namespace..."
+                   kubectl delete -f complex-hpa.yaml -n project-devops || true
+                   kubectl delete deployment --all -n project-devops || true
+                   kubectl delete service --all -n project-devops || true
                 '''
             }
         }
