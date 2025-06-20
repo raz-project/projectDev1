@@ -59,8 +59,8 @@ pipeline {
                 bat '''
                      curl -s http://localhost:8081
                 '''
-    }
-}
+            }
+        }
 
         stage('Docker Compose Down') {
             steps {
@@ -68,6 +68,25 @@ pipeline {
                     docker compose down -v
                     docker volume prune -f
                 """
+            }
+        }
+
+        stage('Install k3s') {
+            steps {
+                bat '''
+                    echo "Installing k3s..."
+                    curl -sfL https://get.k3s.io | sh -
+                '''
+            }
+        }
+
+        stage('Check k3s Version') {
+            steps {
+                bat '''
+                    echo "Checking k3s version..."
+                    set KUBEVERSION=%k3s --version --short
+                    echo "k3s version: %KUBEVERSION%"
+                '''
             }
         }
         
