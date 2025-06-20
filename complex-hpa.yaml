@@ -22,6 +22,10 @@ spec:
       containers:
         - name: project-node-app
           image: rsrs88/nodejs-app:1.0 # Container image to use
+          ports:
+        - containerPort: 8081
+        - containerPort: 80
+          name: http
           resources:
             requests: # Minimum resources required
               cpu: 100m # 0.1 CPU core
@@ -29,23 +33,18 @@ spec:
             limits: # Maximum resources allowed
               cpu: 500m # 0.5 CPU core
               memory: 128Mi # 128 Megabytes of memory
-          ports:
-            - containerPort: 80 # HTTP port for the application
-              name: http
-            - containerPort: 8000 # Metrics port for Prometheus
-              name: metrics
-          readinessProbe: # Check if pod is ready to receive traffic
+          readinessProbe:
             httpGet:
               path: /
               port: 80
-            initialDelaySeconds: 5 # Wait 5s before first check
-            periodSeconds: 10 # Check every 10s
-          livenessProbe: # Check if pod is healthy
-            httpGet:
+          initialDelaySeconds: 5
+           periodSeconds: 10
+          livenessProbe:
+           httpGet:
               path: /
               port: 80
-            initialDelaySeconds: 15 # Wait 15s before first check
-            periodSeconds: 20 # Check every 20s
+          initialDelaySeconds: 15
+          periodSeconds: 20
 ---
 # Service configuration to expose the application
 apiVersion: v1
