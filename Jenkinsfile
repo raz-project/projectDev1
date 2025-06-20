@@ -74,20 +74,20 @@ pipeline {
         stage('Install k3s') {
             steps {
                 // Use WSL to execute Linux commands on Windows
-                sh '''
+                bat """
                     echo "Installing k3s..."
-                    curl -sfL https://get.k3s.io | sh -
-                '''
+                    wsl curl -sfL https://get.k3s.io | wsl sh -
+                """
             }
         }
 
         stage('Check k3s Version') {
             steps {
                 // Use WSL to check k3s version on Windows
-                sh '''
+                bat """
                     echo "Checking k3s version..."
-                    k3s --version --short
-                '''
+                    wsl k3s --version --short
+                """
             }
         }
         
