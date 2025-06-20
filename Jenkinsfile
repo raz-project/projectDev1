@@ -111,19 +111,23 @@ pipeline {
         stage('Test index.html in Pod') {
            steps {
               sh '''
-                  echo "Finding the pod name..."
-                  POD_NAME=$(kubectl get pods -l app=project-node-app -o jsonpath="{.items[0].metadata.name}")
+                  echo "Finding the pod name in project-dev namespace..."
+                  kubectl get pods -n project-dev -o wide
 
-              if [ -z "$POD_NAME" ]; then
-                  echo "Error: No pods found with label app=project-node-app"
-                  exit 1
-              fi
+                POD_NAME=$(kubectl get pods -n project-dev -l app=project-node-app -o jsonpath="{.items[0].metadata.name}")
 
-                 echo "Executing curl inside the pod..."
-                 kubectl exec $POD_NAME -- curl -s http://localhost:8080/index.html
-              '''
+               if [ -z "$POD_NAME" ]; then
+                   echo "Error: No pods found with label app=project-node-app in project-dev namespace"
+                   exit 1
+               fi
+
+                   echo "Pod found: $POD_NAME"
+                   echo "Executing curl inside the pod..."
+                   kubectl exec -n project-dev $POD_NAME -- curl -s http://localhost:8080/index.html
+               '''
             }
         }
+
 
         stage('Clean Up K3s Resources') {
             steps {
