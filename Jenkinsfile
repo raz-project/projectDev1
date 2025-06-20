@@ -48,17 +48,17 @@ pipeline {
                 bat """
                     docker compose down -v || exit 0
                     docker compose up -d --build
-                    timeout /t 10
+                    ping -n 10 127.0.0.1 > nul
                     docker compose ps
                 """
             }
         }
 
         stage('Test HTML Response') {
-            steps {
-                bat """
-                    powershell -Command "$response = Invoke-WebRequest -Uri http://localhost:8080; if ($response.Content -notmatch '<html') { Write-Error 'HTML content not found in response!'; exit 1 } else { Write-Host 'HTML content detected.' }"
-                """
+           steps {
+              bat """
+                  powershell -Command "$response = Invoke-WebRequest -Uri http://localhost:8080 -UseBasicParsing; if ($response.Content -notmatch '<html') { Write-Error 'HTML content not found in response!'; exit 1 } else { Write-Host 'HTML content detected.' }"
+              """
             }
         }
 

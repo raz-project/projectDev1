@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     image: rsrs88/nodejs-app:1.0
     ports:
-      - "8080:80"
+      - "8081:80"
     volumes:
       - ./web/index.html:/app/web/index.html
     deploy:
