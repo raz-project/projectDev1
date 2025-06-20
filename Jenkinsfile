@@ -1,14 +1,15 @@
 pipeline {
-    agent any  // Runs on any available agent (Windows, Linux, or Mac)
-    
+    agent any
+
     environment {
         DOCKERHUB_CREDENTIALS = credentials('raz_docker')
+        K3S_NAMESPACE = 'project-devops'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: "main", url: 'https://github.com/raz-project/projectDev1.git'  // Replace with your repository URL
+                git branch: "main", url: 'https://github.com/raz-project/projectDev1.git'
             }
         }
 
@@ -29,16 +30,16 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
-                sh "docker run -d  --name nodejs-container ${DOCKERHUB_CREDENTIALS_USR}/nodejs-app:1.0"
+                sh "docker run -d --name nodejs-container ${DOCKERHUB_CREDENTIALS_USR}/nodejs-app:1.0"
             }
         }
-        
+
         stage('Cleanup') {
             steps {
                 sh """
-                    docker stop nodejs-container
-                    docker rm nodejs-container
-                    docker rmi ${DOCKERHUB_CREDENTIALS_USR}/nodejs-app:1.0
+                    docker stop nodejs-container || true
+                    docker rm nodejs-container || true
+                    docker rmi ${DOCKERHUB_CREDENTIALS_USR}/nodejs-app:1.0 || true
                 """
             }
         }
@@ -46,7 +47,7 @@ pipeline {
         stage('Docker Compose Up') {
             steps {
                 sh """
-                    docker compose down -v || exit 0
+                    docker compose down -v || true
                     docker compose up -d --build
                     sleep 10
                     docker compose ps
@@ -55,10 +56,8 @@ pipeline {
         }
 
         stage('Test HTML Response') {
-           steps {
-                sh '''
-                     curl -s http://localhost:8081
-                '''
+            steps {
+                sh 'curl -s http://localhost:8081'
             }
         }
 
@@ -82,14 +81,14 @@ pipeline {
 
         stage('Check k3s Version') {
             steps {
-               sh '''
-                   echo "Checking k3s version..."
-                   k3s --version
-               '''
+                sh '''
+                    echo "Checking k3s version..."
+                    k3s --version
+                '''
             }
-         }
+        }
 
-         stage('Apply COMPLEX-HPA Configuration') {
+        stage('Apply COMPLEX-HPA Configuration') {
             steps {
                 sh '''
                     echo "Applying complex-hpa.yaml..."
@@ -99,43 +98,40 @@ pipeline {
         }
 
         stage('Verify Pods') {
-           steps {
-              sh '''
-                  echo "Waiting for pods to be created..."
-                  sleep 10
-                  kubectl get pods -n project-devops -o wide
-              '''
+            steps {
+                sh '''
+                    echo "Waiting for pods to be created..."
+                    sleep 10
+                    kubectl get pods -n ${K3S_NAMESPACE} -o wide
+                '''
             }
         }
 
         stage('Test index.html in Pod') {
-           steps {
-              sh '''
-                  echo "Finding the pod name in project-dev namespace..."
-                  kubectl get pods -n project-dev -o wide
+            steps {
+                sh '''
+                    echo "Finding the pod name in ${K3S_NAMESPACE} namespace..."
+                    POD_NAME=$(kubectl get pods -n ${K3S_NAMESPACE} -l app=project-node-app -o jsonpath="{.items[0].metadata.name}")
 
-                POD_NAME=$(kubectl get pods -n project-dev -l app=project-node-app -o jsonpath="{.items[0].metadata.name}")
+                    if [ -z "$POD_NAME" ]; then
+                        echo "Error: No pods found with label app=project-node-app in ${K3S_NAMESPACE} namespace"
+                        exit 1
+                    fi
 
-               if [ -z "$POD_NAME" ]; then
-                   echo "Error: No pods found with label app=project-node-app in project-devops namespace"
-                   exit 1
-               fi
-
-                   echo "Pod found: $POD_NAME"
-                   echo "Executing curl inside the pod..."
-                   kubectl exec -n project-devops $POD_NAME -- curl -s http://localhost:8080/index.html
-               '''
+                    echo "Pod found: $POD_NAME"
+                    echo "Executing curl inside the pod..."
+                    kubectl exec -n ${K3S_NAMESPACE} $POD_NAME -- curl -s http://localhost:8080/index.html
+                '''
             }
         }
 
-
-         stage('Clean Up K3s Resources') {
+        stage('Clean Up K3s Resources') {
             steps {
-               sh '''
-                   echo "Cleaning up Kubernetes resources in project-devops namespace..."
-                   kubectl delete -f complex-hpa.yaml -n project-devops || true
-                   kubectl delete deployment --all -n project-devops || true
-                   kubectl delete service --all -n project-devops || true
+                sh '''
+                    echo "Cleaning up Kubernetes resources in ${K3S_NAMESPACE} namespace..."
+                    kubectl delete -f complex-hpa.yaml -n ${K3S_NAMESPACE} || true
+                    kubectl delete deployment --all -n ${K3S_NAMESPACE} || true
+                    kubectl delete service --all -n ${K3S_NAMESPACE} || true
                 '''
             }
         }
