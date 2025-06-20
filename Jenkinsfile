@@ -55,17 +55,10 @@ pipeline {
         }
 
         stage('Test HTML Response') {
-    steps {
-        bat """
-            powershell -Command "\$response = Invoke-WebRequest -Uri http://localhost:8081 -UseBasicParsing; `
-            Write-Host 'Response content: ' \$response.Content; `
-            if (\$response.Content -match '<html.*?>.*</html>') { `
-                Write-Host 'HTML content detected.'; `
-            } else { `
-                Write-Error 'HTML content not found in response!'; `
-                exit 1; `
-            }"
-        """
+            steps {
+             bat '''
+                 powershell -Command "$response = Invoke-WebRequest -Uri http://localhost:8081 -UseBasicParsing; if ($response.Content -match '<html.*?>.*</html>') { Write-Host 'HTML content detected.'; } else { Write-Error 'HTML content not found in response!'; exit 1; }"
+                '''
     }
 }
 
