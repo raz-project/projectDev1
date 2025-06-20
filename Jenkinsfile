@@ -73,7 +73,7 @@ pipeline {
 
         stage('Install k3s') {
             steps {
-                // Use WSL to execute Linux commands on Windows
+                // Ensure WSL is available and the user has permission to execute it
                 bat """
                     echo "Installing k3s..."
                     wsl curl -sfL https://get.k3s.io | wsl sh -
