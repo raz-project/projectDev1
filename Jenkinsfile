@@ -32,7 +32,7 @@ pipeline {
                 bat "docker run -d  --name nodejs-container %DOCKERHUB_CREDENTIALS_USR%/nodejs-app:1.0"
             }
         }
-
+        
         stage('Cleanup') {
             steps {
                 bat """
@@ -42,6 +42,35 @@ pipeline {
                 """
             }
         }
+
+        stage('Docker Compose Up') {
+            steps {
+                bat """
+                    docker compose down -v || exit 0
+                    docker compose up -d --build
+                    timeout /t 10
+                    docker compose ps
+                """
+            }
+        }
+
+        stage('Test HTML Response') {
+            steps {
+                bat """
+                    powershell -Command "$response = Invoke-WebRequest -Uri http://localhost:8080; if ($response.Content -notmatch '<html') { Write-Error 'HTML content not found in response!'; exit 1 } else { Write-Host 'HTML content detected.' }"
+                """
+            }
+        }
+
+        stage('Docker Compose Down') {
+            steps {
+                bat """
+                    docker compose down -v
+                    docker volume prune -f
+                """
+            }
+        }
         
+
     }
 }
