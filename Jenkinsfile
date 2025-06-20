@@ -108,6 +108,18 @@ pipeline {
             }
         }
 
+        stage('Test index.html in Pod') {
+            steps {
+                sh '''
+                    echo "Finding the pod name..."
+                    POD_NAME=$(kubectl get pods -l app=nodejs-app -o jsonpath="{.items[0].metadata.name}")
+                    
+                    echo "Executing curl inside the pod..."
+                    kubectl exec $POD_NAME -- curl -s http://localhost:8080/index.html
+                '''
+            }
+        }
+
         stage('Clean Up K3s Resources') {
             steps {
                 sh '''
