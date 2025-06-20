@@ -82,11 +82,11 @@ pipeline {
 
         stage('Check k3s Version') {
             steps {
-                sh '''
-                    echo "Checking k3s version..."
-                    k3s --version --short
-                '''
+               sh '''
+                   echo "Checking k3s version..."
+                   k3s --version
+               '''
             }
-        }
+         }
     }
 }
