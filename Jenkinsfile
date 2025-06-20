@@ -129,7 +129,7 @@ pipeline {
         }
 
 
-        sstage('Clean Up K3s Resources') {
+         stage('Clean Up K3s Resources') {
             steps {
                sh '''
                    echo "Cleaning up Kubernetes resources in project-devops namespace..."
