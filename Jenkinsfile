@@ -108,20 +108,20 @@ pipeline {
         }
 
         stage('Test index.html in Pod') {
-            steps {
-                sh '''
-                    echo "Finding the pod name in ${K3S_NAMESPACE} namespace..."
-                    POD_NAME=$(kubectl get pods -n ${K3S_NAMESPACE} -l app=project-node-app -o jsonpath="{.items[0].metadata.name}")
-
-                    if [ -z "$POD_NAME" ]; then
-                        echo "Error: No pods found with label app=project-node-app in ${K3S_NAMESPACE} namespace"
-                        exit 1
-                    fi
-
-                    echo "Pod found: $POD_NAME"
-                    echo "Executing curl inside the pod..."
-                    kubectl exec -n ${K3S_NAMESPACE} $POD_NAME -- curl -s http://localhost:8080/index.html
-                '''
+           steps {
+              sh '''
+               POD_NAME=$(kubectl get pods -n ${K3S_NAMESPACE} -l app=project-node-app -o jsonpath="{.items[0].metadata.name}")
+               if [ -z "$POD_NAME" ]; then
+                   echo "❌ No pod found with app=project-node-app in ${K3S_NAMESPACE}"
+                   exit 1
+               fi
+               echo "✅ Pod found: $POD_NAME"
+               kubectl port-forward -n ${K3S_NAMESPACE} pod/$POD_NAME 8080:8080 &
+               PORT_FORWARD_PID=$!
+               sleep 5
+               curl -s http://localhost:8080/index.html
+               kill $PORT_FORWARD_PID
+              '''
             }
         }
 
