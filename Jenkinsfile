@@ -55,12 +55,19 @@ pipeline {
         }
 
         stage('Test HTML Response') {
-            steps {
-                bat """
-                    powershell -Command "\$response = Invoke-WebRequest -Uri http://localhost:8081 -UseBasicParsing; if (\$response.Content -notmatch '<html') { Write-Error 'HTML content not found in response!'; exit 1; } else { Write-Host 'HTML content detected.'; }"
-                """
-            }
-        }
+    steps {
+        bat """
+            powershell -Command "\$response = Invoke-WebRequest -Uri http://localhost:8081 -UseBasicParsing; 
+            Write-Host 'Response content: ' \$response.Content;
+            if (\$response.Content -match '<html.*?>.*</html>') { 
+                Write-Host 'HTML content detected.';
+            } else { 
+                Write-Error 'HTML content not found in response!'; 
+                exit 1; 
+            }"
+        """
+    }
+}
 
         stage('Docker Compose Down') {
             steps {
