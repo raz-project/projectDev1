@@ -89,11 +89,11 @@ pipeline {
             }
          }
 
-         stage('Apply HPA Configuration') {
+         stage('Apply COMPLEX-HPA Configuration') {
             steps {
                 sh '''
-                    echo "Applying hpa-complex.yaml..."
-                    kubectl apply -f hpa-complex.yaml
+                    echo "Applying complex-hpa.yaml..."
+                    kubectl apply -f complex-hpa.yaml
                 '''
             }
         }
@@ -112,7 +112,7 @@ pipeline {
             steps {
                 sh '''
                     echo "Cleaning up Kubernetes resources..."
-                    kubectl delete -f hpa-complex.yaml || true
+                    kubectl delete -f complex-hpa.yaml || true
                     kubectl delete deployment --all || true
                     kubectl delete service --all || true
                 '''
