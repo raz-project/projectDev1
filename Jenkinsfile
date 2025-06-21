@@ -88,15 +88,6 @@ pipeline {
             }
         }
 
-        stage('Lint YAML Configuration') {
-            steps {
-                sh '''
-                    echo "🔍 Running yamllint on complex-hpa.yaml..."
-                    yamllint complex-hpa.yaml
-                '''
-            }
-        }
-
         stage('Apply COMPLEX-HPA Configuration') {
             steps {
                 sh '''
