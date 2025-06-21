@@ -37,14 +37,22 @@ jobs:
           sleep 10
           docker compose ps
 
-      - name: Test served HTML page
+      - name: Test served HTML page on port 8081
         run: |
-          RESPONSE=$(curl -s http://localhost:8080)
-          echo "$RESPONSE"
-          if [[ "$RESPONSE" != *"<html"* ]]; then
-            echo "HTML content not found in response!"
-            exit 1
-          fi
+          echo "Testing HTML response on http://localhost:8081..."
+          for i in {1..5}; do
+            RESPONSE=$(curl -s http://localhost:8081)
+            echo "$RESPONSE"
+            if [[ "$RESPONSE" == *"<html"* ]]; then
+              echo "✅ HTML page detected!"
+              exit 0
+            fi
+            echo "❌ HTML not detected. Retrying in 3s..."
+            sleep 3
+          done
+
+          echo "🚫 Failed to detect HTML content."
+          exit 1
 
       - name: Stop and remove Docker Compose containers and volumes
         run: |
