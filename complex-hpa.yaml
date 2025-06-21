@@ -32,8 +32,6 @@ spec:
           ports:
             - containerPort: 80 # HTTP port for the application
               name: http
-            - containerPort: 8000 # Metrics port for Prometheus
-              name: metrics
           readinessProbe: # Check if pod is ready to receive traffic
             httpGet:
               path: /
