@@ -44,14 +44,14 @@ jobs:
             RESPONSE=$(curl -s http://localhost:8081)
             echo "$RESPONSE"
             if [[ "$RESPONSE" == *"<html"* ]]; then
-              echo "✅ HTML page detected!"
+              echo "HTML page detected!"
               exit 0
             fi
-            echo "❌ HTML not detected. Retrying in 3s..."
+            echo "HTML not detected. Retrying in 3s..."
             sleep 3
           done
 
-          echo "🚫 Failed to detect HTML content."
+          echo "Failed to detect HTML content."
           exit 1
 
       - name: Stop and remove Docker Compose containers and volumes
