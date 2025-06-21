@@ -126,13 +126,13 @@ pipeline {
 
             # Test the app
             curl -s http://localhost:8081/index.html || {
-              echo "❌ Failed to fetch index.html"
+              echo "Failed to fetch index.html"
               kill $PORT_FORWARD_PID
               exit 1
             }
 
             # Kill port-forward process
-            kill $PORT_FORWARD_PID || echo "⚠️ No process found to kill"
+            kill $PORT_FORWARD_PID || echo "No process found to kill"
         '''
     }
 }
