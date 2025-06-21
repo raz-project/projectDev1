@@ -108,30 +108,36 @@ pipeline {
         }
 
         stage('Test index.html in Pod') {
-           steps {
-              sh '''
-                 POD_NAME=$(kubectl get pods -n ${K3S_NAMESPACE} -l app=project-node-app -o jsonpath="{.items[0].metadata.name}")
-                 if [ -z "$POD_NAME" ]; then
-                   echo "No pod found with app=project-node-app in ${K3S_NAMESPACE}"
-                   exit 1
-                 fi
-                   echo "Pod found: $POD_NAME"
+    steps {
+        sh '''
+            POD_NAME=$(kubectl get pods -n ${K3S_NAMESPACE} -l app=project-node-app -o jsonpath="{.items[0].metadata.name}")
+            if [ -z "$POD_NAME" ]; then
+              echo "No pod found with app=project-node-app in ${K3S_NAMESPACE}"
+              exit 1
+            fi
+            echo "Pod found: $POD_NAME"
             
-                 # Start port-forward in background
-                 kubectl port-forward -n ${K3S_NAMESPACE} pod/$POD_NAME 8081:8080 &
-                 PORT_FORWARD_PID=$!
-                 echo " Port-forward PID: $PORT_FORWARD_PID"
+            # Start port-forward in background (fix: forward to correct pod port)
+            kubectl port-forward -n ${K3S_NAMESPACE} pod/$POD_NAME 8081:80 &
+            PORT_FORWARD_PID=$!
+            echo "Port-forward PID: $PORT_FORWARD_PID"
 
             sleep 5
 
             # Test the app
-            curl -s http://localhost:8081/index.html
+            curl -s http://localhost:8081/index.html || {
+              echo "❌ Failed to fetch index.html"
+              kill $PORT_FORWARD_PID
+              exit 1
+            }
 
             # Kill port-forward process
             kill $PORT_FORWARD_PID || echo "⚠️ No process found to kill"
         '''
     }
 }
+
+        
 
         stage('Clean Up K3s Resources') {
             steps {
