@@ -70,26 +70,6 @@ pipeline {
                 """
             }
         }
-
-        stage('Install k3s') {
-            steps {
-                // Ensure WSL is available and the user has permission to execute it
-                bat """
-                    echo "Installing k3s..."
-                    wsl curl -sfL https://get.k3s.io | wsl sh -
-                """
-            }
-        }
-
-        stage('Check k3s Version') {
-            steps {
-                // Use WSL to check k3s version on Windows
-                bat """
-                    echo "Checking k3s version..."
-                    wsl k3s --version --short
-                """
-            }
-        }
         
 
     }
