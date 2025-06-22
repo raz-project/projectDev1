@@ -38,12 +38,12 @@ pipeline {
         }
 
         stage('Docker Push to DockerHub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'raz_docker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                        echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
-                        docker push ${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG}
-                    """
+           steps {
+              withCredentials([usernamePassword(credentialsId: 'raz_docker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                  sh '''
+                      echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                      docker push "$DOCKER_USER"/nodejs-app:1.0
+                  '''
                 }
             }
         }
