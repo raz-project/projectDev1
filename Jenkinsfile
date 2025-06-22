@@ -2,35 +2,49 @@ pipeline {
     agent any
 
     environment {
+        
         DOCKERHUB_CREDENTIALS = credentials('raz_docker')
+        DOCKER_IMAGE = 'nodejs-app'
+        DOCKER_TAG = '1.0'
         K3S_NAMESPACE = 'project-devops'
+        TRIVY_SEVERITY = 'CRITICAL,HIGH'
+        
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: "main", credentialsId: 'github-raz' , url: 'https://github.com/raz-project/projectDev1.git'
+                git branch: "main", credentialsId: 'github-raz', url: 'https://github.com/raz-project/projectDev1.git'
             }
         }
 
         stage('Docker Build and Tag') {
             steps {
-                sh "docker build -t ${DOCKERHUB_CREDENTIALS_USR}/nodejs-app:1.0 ."
+                withCredentials([usernamePassword(credentialsId: 'raz_docker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh "docker build -t ${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                }
             }
         }
 
         stage('Trivy Scan tagged image') {
             steps {
-                sh "trivy image ${DOCKERHUB_CREDENTIALS_USR}/nodejs-app:1.0 --exit-code 1 --severity CRITICAL,HIGH || true"
+                withCredentials([usernamePassword(credentialsId: 'raz_docker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh """
+                        echo "Scanning image: ${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        trivy image ${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG} --exit-code 1 --severity ${TRIVY_SEVERITY} || true
+                    """
+                }
             }
         }
 
         stage('Docker Push to DockerHub') {
             steps {
-                sh """
-                    echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin
-                    docker push ${DOCKERHUB_CREDENTIALS_USR}/nodejs-app:1.0
-                """
+                withCredentials([usernamePassword(credentialsId: 'raz_docker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh """
+                        echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
+                        docker push ${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG}
+                    """
+                }
             }
         }
 
