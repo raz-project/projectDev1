@@ -9,13 +9,19 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: "main", url: 'https://github.com/raz-project/projectDev1.git'
+                git branch: "main", credentialsId: 'github-raz' , url: 'https://github.com/raz-project/projectDev1.git'
             }
         }
 
         stage('Docker Build and Tag') {
             steps {
                 sh "docker build -t ${DOCKERHUB_CREDENTIALS_USR}/nodejs-app:1.0 ."
+            }
+        }
+
+        stage('Trivy Scan tagged image') {
+            steps {
+                sh "trivy image ${DOCKERHUB_CREDENTIALS_USR}/nodejs-app:1.0 --exit-code 1 --severity CRITICAL,HIGH || true"
             }
         }
 
