@@ -27,12 +27,12 @@ pipeline {
         }
 
         stage('Trivy Scan tagged image') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'raz_docker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                        echo "Scanning image: ${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG}"
-                        trivy image ${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG} --exit-code 1 --severity ${TRIVY_SEVERITY} || true
-                    """
+           steps {
+              withCredentials([usernamePassword(credentialsId: 'raz_docker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                  sh '''
+                      echo "Scanning image: ${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG}"
+                      trivy --exit-code 1 --severity CRITICAL,HIGH image ${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG} || true
+                  '''
                 }
             }
         }
