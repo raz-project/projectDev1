@@ -35,7 +35,6 @@ jobs:
 
       - name: Stop and remove container and volume
         run: |
-          run: |
           docker stop test-app || true
           docker rm test-app || true
           docker volume prune -f
