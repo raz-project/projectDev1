@@ -1,18 +1,27 @@
 services:
   web:
+    # Build the Docker image from the Dockerfile in the current directory
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: .              # The build context is the current directory
+      dockerfile: Dockerfile # Use the Dockerfile named 'Dockerfile' for building the image
+
+    # Name and tag of the built image (useful for reuse and pushing to registries)
     image: rsrs88/nodejs-app:1.0
+
+    # Map port 8081 on the host to port 80 in the container
     ports:
       - "8081:80"
+
+    # Mount a local file into the container, replacing the container's version
     volumes:
-      - ./web/index.html:/app/web/index.html
+      - ./web/index.html:/app/web/index.html  # Useful for development or overriding static files
+
+    # Docker Swarm-specific deployment options
     deploy:
-      replicas: 1
+      replicas: 1              # Number of container replicas to run
       resources:
         limits:
-          cpus: "0.1"
-          memory: 64M
+          cpus: "0.1"          # Limit container to 10% of a CPU core
+          memory: 64M          # Limit container to 64MB of RAM
       placement:
-        max_replicas_per_node: 10
+        max_replicas_per_node: 10  # Up to 10 replicas can run on a single node
